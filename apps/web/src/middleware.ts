@@ -1,56 +1,95 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { setCookiesValue } from "./lib/experiments";
+import {
+  getRouteExperiments,
+  getExperimentForRoute,
+  selectVariantPage,
+} from "./lib/route-experiments";
 
-const EXPERIMENT_VARIANTS = ["control", "variant"];
+const EXPERIMENT_VARIANTS = ["control", "variant", "variant-a", "variant-b", "variant-c"];
 
-export function middleware(request: NextRequest) {
+function getUserVariant(request: NextRequest, response: NextResponse): string {
+  // Check existing cookie first
+  const existingCookie = request.cookies.get("ab-test")?.value;
+  if (existingCookie) {
+    try {
+      return JSON.parse(existingCookie).userGroup || "control";
+    } catch {
+      return "control";
+    }
+  }
+
+  // Check newly set cookie
+  const newCookie = response.cookies.get("ab-test")?.value;
+  if (newCookie) {
+    try {
+      return JSON.parse(newCookie).userGroup || "control";
+    } catch {
+      return "control";
+    }
+  }
+
+  return "control";
+}
+
+function preserveCookies(source: NextResponse, target: NextResponse): void {
+  source.cookies.getAll().forEach((cookie) => {
+    target.cookies.set(cookie.name, cookie.value);
+  });
+}
+
+export async function middleware(request: NextRequest) {
   let response = NextResponse.next();
   response = setCookiesValue(request, response);
 
-  // Handle blog post A/B test routing
   const pathname = request.nextUrl.pathname;
-  
-  // Match /blog/[slug] but not /blog/[slug]/[variant]
-  // This regex matches /blog/something where "something" doesn't contain a slash
-  if (pathname.match(/^\/blog\/[^\/]+$/) && !pathname.endsWith("/")) {
-    // Get variant from existing cookie or the newly set one
-    let userGroup = "control";
-    
-    const existingCookie = request.cookies.get("ab-test")?.value;
-    if (existingCookie) {
-      try {
-        userGroup = JSON.parse(existingCookie).userGroup || "control";
-      } catch {
-        userGroup = "control";
-      }
-    } else {
-      // Cookie was just set by setCookiesValue, read from response
-      const newCookie = response.cookies.get("ab-test")?.value;
-      if (newCookie) {
-        try {
-          userGroup = JSON.parse(newCookie).userGroup || "control";
-        } catch {
-          userGroup = "control";
+  const userVariant = getUserVariant(request, response);
+  // Geo is available on Vercel Edge, may be undefined locally
+  const countryCode = (request as NextRequest & { geo?: { country?: string } }).geo?.country;
+
+  // ===========================================
+  // Route Experiments (CMS-driven)
+  // ===========================================
+  try {
+    const experiments = await getRouteExperiments();
+    const experiment = getExperimentForRoute(experiments, pathname);
+
+    if (experiment) {
+      const selectedPage = selectVariantPage(experiment, userVariant, countryCode);
+
+      if (selectedPage) {
+        const url = request.nextUrl.clone();
+
+        // For homePage, rewrite to /home/[variant]
+        if (selectedPage.pageType === "homePage") {
+          url.pathname = `/home/${userVariant}`;
+        } else if (selectedPage.pageSlug) {
+          // For regular pages, rewrite to /[slug]/[variant]
+          url.pathname = `${selectedPage.pageSlug}/${userVariant}`;
+        }
+
+        if (url.pathname !== pathname) {
+          const rewriteResponse = NextResponse.rewrite(url);
+          preserveCookies(response, rewriteResponse);
+          return rewriteResponse;
         }
       }
     }
+  } catch (error) {
+    console.error("Route experiment middleware error:", error);
+    // Continue with normal routing if experiments fail
+  }
 
-    // Ensure variant is valid
-    const variant = EXPERIMENT_VARIANTS.includes(userGroup) ? userGroup : "control";
-
-    // Rewrite to the variant-specific path
+  // ===========================================
+  // Blog Post A/B Test Routing (hardcoded)
+  // ===========================================
+  if (pathname.match(/^\/blog\/[^\/]+$/) && !pathname.endsWith("/")) {
+    const variant = EXPERIMENT_VARIANTS.includes(userVariant) ? userVariant : "control";
     const url = request.nextUrl.clone();
     url.pathname = `${pathname}/${variant}`;
     const rewriteResponse = NextResponse.rewrite(url);
-    
-    // Preserve cookies from the original response (including newly set ab-test cookie)
-    response.cookies.getAll().forEach((cookie) => {
-      rewriteResponse.cookies.set(cookie.name, cookie.value, {
-        ...cookie,
-      });
-    });
-    
+    preserveCookies(response, rewriteResponse);
     return rewriteResponse;
   }
 

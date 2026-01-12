@@ -136,6 +136,18 @@ export const queryHomePageData =
     ${pageBuilderFragment}
   }`);
 
+// Query for fetching any page by ID (for route experiments)
+export const queryPageById = defineQuery(/* groq */ `
+  *[_id == $id][0]{
+    _id,
+    _type,
+    title,
+    description,
+    "slug": slug.current,
+    ${pageBuilderFragment}
+  }
+`);
+
 export const querySlugPageData = defineQuery(/* groq */ `
   *[_type == "page" && slug.current == $slug][0]{
     ...,
@@ -300,3 +312,26 @@ export const querySitemapData = defineQuery(/* groq */ `{
     "lastModified": _updatedAt
   }
 }`);
+
+// Route experiments query for middleware
+export const queryRouteExperiments = defineQuery(/* groq */ `
+  *[_type == "routeExperiment" && isActive == true]{
+    _id,
+    name,
+    targetRoute,
+    variants[]{
+      id,
+      label,
+      weight,
+      "pageId": page->_id,
+      "pageSlug": page->slug.current,
+      "pageType": page->_type
+    },
+    geoTargeting[]{
+      country,
+      "pageId": page->_id,
+      "pageSlug": page->slug.current,
+      "pageType": page->_type
+    }
+  }
+`);

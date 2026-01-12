@@ -9,6 +9,7 @@ import {
   MenuIcon,
   BlockElementIcon,
   UserIcon,
+  SparklesIcon,
 } from "@sanity/icons";
 import type {
   StructureBuilder,
@@ -109,6 +110,13 @@ export const structure = (
         icon: HelpCircleIcon,
       }),
       createList({ S, type: "author", title: "Authors", icon: UserIcon }),
+      S.divider(),
+      createList({
+        S,
+        type: "routeExperiment",
+        title: "Route Experiments",
+        icon: SparklesIcon,
+      }),
       S.divider(),
       createSingleTon({
         S,
