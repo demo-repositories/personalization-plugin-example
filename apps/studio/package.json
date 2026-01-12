@@ -5,7 +5,7 @@
   "main": "package.json",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "sanity dev",
+    "dev": "sanity dev --no-auto-updates",
     "format": "prettier --write .",
     "start": "sanity start",
     "lint": "eslint . --fix",
@@ -22,9 +22,9 @@
     "@sanity/assist": "^3.1.0",
     "@sanity/icons": "^3.5.7",
     "@sanity/image-url": "^1.1.0",
+    "@sanity/personalization-plugin": "^2.4.3",
     "@sanity/ui": "^2.11.4",
     "@sanity/vision": "^3.71.2",
-    "lucide-react": "0.471.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-is": "^19.0.0",
@@ -34,7 +34,8 @@
     "sanity-plugin-icon-picker": "^3.3.0",
     "sanity-plugin-media": "^2.3.2",
     "slugify": "^1.6.6",
-    "styled-components": "^6.1.14"
+    "styled-components": "^6.1.14",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@faker-js/faker": "^9.4.0",

@@ -1,11 +1,11 @@
-import { MessageCircleQuestion } from "lucide-react";
+import { HelpCircleIcon } from "@sanity/icons";
 import { defineType } from "sanity";
 import { defineField } from "sanity";
 
 export const faqAccordion = defineType({
   name: "faqAccordion",
   type: "object",
-  icon: MessageCircleQuestion,
+  icon: HelpCircleIcon,
   fields: [
     defineField({
       name: "eyebrow",

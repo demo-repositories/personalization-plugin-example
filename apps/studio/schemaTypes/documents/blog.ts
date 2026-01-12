@@ -18,6 +18,11 @@ export const blog = defineType({
       group: GROUP.MAIN_CONTENT,
     }),
     defineField({
+      name: 'newTitle',
+      type: 'experimentString',
+      group: GROUP.MAIN_CONTENT,
+    }),
+    defineField({
       name: "description",
       type: "text",
       title: "Description",

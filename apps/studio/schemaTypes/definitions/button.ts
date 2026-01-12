@@ -1,4 +1,4 @@
-import { Command } from "lucide-react";
+import { ControlsIcon } from "@sanity/icons";
 import { defineField, defineType } from "sanity";
 
 import { capitalize, createRadioListLayout } from "../../utils/helper";
@@ -9,7 +9,7 @@ export const button = defineType({
   name: "button",
   title: "Button",
   type: "object",
-  icon: Command,
+  icon: ControlsIcon,
   fields: [
     defineField({
       name: "variant",

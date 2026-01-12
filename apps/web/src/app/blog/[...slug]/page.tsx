@@ -1,17 +1,25 @@
 import { notFound } from "next/navigation";
-
+import { Tracking } from "@/components/tracking";
 import { RichText } from "@/components/richtext";
 import { SanityImage } from "@/components/sanity-image";
 import { TableOfContent } from "@/components/table-of-content";
+import { getDeferredTrackingData } from "@/lib/experiments";
 import { client } from "@/lib/sanity/client";
 import { sanityFetch } from "@/lib/sanity/live";
 import { queryBlogPaths, queryBlogSlugPageData } from "@/lib/sanity/query";
 import { getMetaData } from "@/lib/seo";
 
-async function fetchBlogSlugPageData(slug: string) {
+const EXPERIMENT_VARIANTS = ["control", "variant"];
+
+async function fetchBlogSlugPageData(blogSlug: string, variant: string) {
+  const queryParams = {
+    slug: `/blog/${blogSlug}`,
+    experiment: "title-value",
+    variant: variant,
+  };
   return await sanityFetch({
     query: queryBlogSlugPageData,
-    params: { slug: `/blog/${slug}` },
+    params: queryParams,
   });
 }
 
@@ -29,25 +37,32 @@ async function fetchBlogPaths() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
-  const { data } = await fetchBlogSlugPageData(slug);
+  const [blogSlug, variant = "control"] = slug;
+  const { data } = await fetchBlogSlugPageData(blogSlug, variant);
   if (!data) return getMetaData({});
   return getMetaData(data);
 }
 
 export async function generateStaticParams() {
-  return await fetchBlogPaths();
+  const paths = await fetchBlogPaths();
+  return paths.flatMap(({ slug }) =>
+    EXPERIMENT_VARIANTS.map((variant) => ({ slug: [slug, variant] }))
+  );
 }
 
 export default async function BlogSlugPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
-  const { data } = await fetchBlogSlugPageData(slug);
+  const [blogSlug, variant = "control"] = slug;
+  const trackingData = await getDeferredTrackingData();
+
+  const { data } = await fetchBlogSlugPageData(blogSlug, variant);
   if (!data) return notFound();
   const { title, description, image, richText } = data ?? {};
 
@@ -81,6 +96,12 @@ export default async function BlogSlugPage({
           </div>
         </aside>
       </div>
+      {trackingData && (
+        <Tracking
+          userGroup={trackingData.userGroup}
+          userId={trackingData.userId}
+        />
+      )}
     </div>
   );
 }

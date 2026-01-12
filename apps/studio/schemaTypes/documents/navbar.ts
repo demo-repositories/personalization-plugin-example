@@ -1,4 +1,4 @@
-import { LayoutPanelLeft, Link, Navigation, PanelTop } from "lucide-react";
+import { BlockElementIcon, InlineElementIcon, LinkIcon, MenuIcon } from "@sanity/icons";
 import { defineField, defineType } from "sanity";
 
 import { buttonsField, iconField } from "../common";
@@ -6,7 +6,7 @@ import { buttonsField, iconField } from "../common";
 const navbarLink = defineField({
   name: "navbarLink",
   type: "object",
-  icon: Link,
+  icon: LinkIcon,
   title: "Navigation Link",
   description: "Individual navigation link with name and URL",
   fields: [
@@ -40,7 +40,7 @@ const navbarLink = defineField({
       return {
         title: title || "Untitled Link",
         subtitle: `${urlType === "external" ? "External" : "Internal"} • ${truncatedUrl}${newTabIndicator}`,
-        media: Link,
+        media: LinkIcon,
       };
     },
   },
@@ -49,7 +49,7 @@ const navbarLink = defineField({
 const navbarColumnLink = defineField({
   name: "navbarColumnLink",
   type: "object",
-  icon: LayoutPanelLeft,
+  icon: InlineElementIcon,
   title: "Navigation Column Link",
   description: "A link within a navigation column",
   fields: [
@@ -90,7 +90,7 @@ const navbarColumnLink = defineField({
       return {
         title: title || "Untitled Link",
         subtitle: `${urlType === "external" ? "External" : "Internal"} • ${truncatedUrl}${newTabIndicator}`,
-        media: Link,
+        media: LinkIcon,
       };
     },
   },
@@ -99,7 +99,7 @@ const navbarColumnLink = defineField({
 const navbarColumn = defineField({
   name: "navbarColumn",
   type: "object",
-  icon: LayoutPanelLeft,
+  icon: InlineElementIcon,
   title: "Navigation Column",
   description: "A column of navigation links with an optional title",
   fields: [
@@ -137,7 +137,7 @@ export const navbar = defineType({
   name: "navbar",
   title: "Site Navigation",
   type: "document",
-  icon: PanelTop,
+  icon: MenuIcon,
   description: "Configure the main navigation structure for your site",
   fields: [
     defineField({

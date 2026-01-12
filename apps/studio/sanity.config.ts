@@ -15,6 +15,7 @@ import { presentationUrl } from "./plugins/presentation-url";
 import { schemaTypes } from "./schemaTypes";
 import { structure } from "./structure";
 import { createPageTemplate } from "./utils/helper";
+import {fieldLevelExperiments} from '@sanity/personalization-plugin'
 
 const projectId = process.env.SANITY_STUDIO_PROJECT_ID ?? "";
 const dataset = process.env.SANITY_STUDIO_DATASET;
@@ -51,6 +52,27 @@ export default defineConfig({
     media(),
     presentationUrl(),
     unsplashImageAsset(),
+    fieldLevelExperiments({
+      // field types that you want to be able to emperiment on
+      fields: ['string'], 
+      // hardcoded experiments and variants
+      experiments: [
+        {
+          id: 'title-value',
+          label: 'Title Value',
+          variants: [
+            {
+              id: 'control',
+              label: 'Control',
+            },
+            {
+              id: 'variant',
+              label: 'Variant',
+            },
+          ],
+        },
+      ],
+     }),
   ],
 
   form: {

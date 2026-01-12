@@ -1,15 +1,15 @@
 import {
-  BookMarked,
+  BookIcon,
   CogIcon,
-  File,
-  FileText,
+  DocumentIcon,
+  DocumentTextIcon,
+  HelpCircleIcon,
   HomeIcon,
-  type LucideIcon,
-  MessageCircleQuestion,
-  PanelBottomIcon,
-  PanelTopDashedIcon,
-  User,
-} from "lucide-react";
+  type IconSymbol,
+  MenuIcon,
+  BlockElementIcon,
+  UserIcon,
+} from "@sanity/icons";
 import type {
   StructureBuilder,
   StructureResolverContext,
@@ -23,7 +23,7 @@ type Base<T = SchemaType> = {
   type: T;
   preview?: boolean;
   title?: string;
-  icon?: LucideIcon;
+  icon?: IconSymbol;
 };
 
 type CreateSingleTon = {
@@ -34,7 +34,7 @@ const createSingleTon = ({ S, type, title, icon }: CreateSingleTon) => {
   const newTitle = title ?? getTitleCase(type);
   return S.listItem()
     .title(newTitle)
-    .icon(icon ?? File)
+    .icon(icon ?? DocumentIcon)
     .child(S.document().schemaType(type).documentId(type));
 };
 
@@ -52,7 +52,7 @@ const createList = ({ S, type, icon, title, id }: CreateList) => {
   return S.documentTypeListItem(type)
     .id(id ?? type)
     .title(newTitle)
-    .icon(icon ?? File);
+    .icon(icon ?? DocumentIcon);
 };
 
 type CreateIndexList = {
@@ -66,14 +66,14 @@ const createIndexList = ({ S, index, list }: CreateIndexList) => {
   const listTitle = list.title ?? getTitleCase(list.type);
   return S.listItem()
     .title(listTitle)
-    .icon(index.icon ?? File)
+    .icon(index.icon ?? DocumentIcon)
     .child(
       S.list()
         .title(indexTitle)
         .items([
           S.listItem()
             .title(indexTitle)
-            .icon(index.icon ?? File)
+            .icon(index.icon ?? DocumentIcon)
             .child(
               S.document()
                 .views([S.view.form()])
@@ -82,7 +82,7 @@ const createIndexList = ({ S, index, list }: CreateIndexList) => {
             ),
           S.documentTypeListItem(list.type)
             .title(`${listTitle}`)
-            .icon(list.icon ?? File),
+            .icon(list.icon ?? DocumentIcon),
         ]),
     );
 };
@@ -99,28 +99,28 @@ export const structure = (
       createList({ S, type: "page", title: "Pages" }),
       createIndexList({
         S,
-        index: { type: "blogIndex", icon: BookMarked },
-        list: { type: "blog", title: "Blogs", icon: FileText },
+        index: { type: "blogIndex", icon: BookIcon },
+        list: { type: "blog", title: "Blogs", icon: DocumentTextIcon },
       }),
       createList({
         S,
         type: "faq",
         title: "FAQs",
-        icon: MessageCircleQuestion,
+        icon: HelpCircleIcon,
       }),
-      createList({ S, type: "author", title: "Authors", icon: User }),
+      createList({ S, type: "author", title: "Authors", icon: UserIcon }),
       S.divider(),
       createSingleTon({
         S,
         type: "navbar",
         title: "Navbar",
-        icon: PanelTopDashedIcon,
+        icon: MenuIcon,
       }),
       createSingleTon({
         S,
         type: "footer",
         title: "Footer",
-        icon: PanelBottomIcon,
+        icon: BlockElementIcon,
       }),
       createSingleTon({
         S,

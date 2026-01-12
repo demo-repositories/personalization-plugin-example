@@ -1,4 +1,4 @@
-import { MessageCircleQuestion } from "lucide-react";
+import { HelpCircleIcon } from "@sanity/icons";
 import { defineField, defineType } from "sanity";
 
 import { parseRichTextToString } from "../../utils/helper";
@@ -7,7 +7,7 @@ import { richTextField } from "../common";
 export const faq = defineType({
   name: "faq",
   type: "document",
-  icon: MessageCircleQuestion,
+  icon: HelpCircleIcon,
   fields: [
     defineField({
       name: "title",

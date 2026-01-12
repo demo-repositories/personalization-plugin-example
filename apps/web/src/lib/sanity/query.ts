@@ -44,10 +44,22 @@ const blogAuthorFragment = /* groq */ `
   }
 `;
 
+// Experiment-aware title fragment that checks for A/B test variants
+const experimentTitleFragment = /* groq */ `
+  "title": coalesce(
+    newTitle.variants[
+      experimentId == $experiment 
+      && variantId == $variant
+    ][0].value,
+    newTitle.default,
+    title
+  )
+`;
+
 const blogCardFragment = /* groq */ `
   _type,
   _id,
-  title,
+  ${experimentTitleFragment},
   description,
   "slug":slug.current,
   richText,
@@ -158,6 +170,7 @@ export const queryBlogIndexPageData = defineQuery(/* groq */ `
 export const queryBlogSlugPageData = defineQuery(/* groq */ `
   *[_type == "blog" && slug.current == $slug][0]{
     ...,
+    ${experimentTitleFragment},
     "slug": slug.current,
     ${blogAuthorFragment},
     ${imageFragment},

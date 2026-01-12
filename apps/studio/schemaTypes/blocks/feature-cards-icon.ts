@@ -1,4 +1,4 @@
-import { LayoutGrid } from "lucide-react";
+import { ThLargeIcon } from "@sanity/icons";
 import { defineField } from "sanity";
 import { defineType } from "sanity";
 import { preview } from "sanity-plugin-icon-picker";
@@ -34,7 +34,7 @@ const featureCardIcon = defineField({
 export const featureCardsIcon = defineType({
   name: "featureCardsIcon",
   type: "object",
-  icon: LayoutGrid,
+  icon: ThLargeIcon,
   fields: [
     defineField({
       name: "eyebrow",

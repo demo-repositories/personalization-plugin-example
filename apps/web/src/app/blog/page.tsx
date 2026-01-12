@@ -7,6 +7,10 @@ import { getMetaData } from "@/lib/seo";
 async function fetchBlogPosts() {
   return await sanityFetch({
     query: queryBlogIndexPageData,
+    params: {
+      experiment: "title-value",
+      variant: "control",
+    },
   });
 }
 

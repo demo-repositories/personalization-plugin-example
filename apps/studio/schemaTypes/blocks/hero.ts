@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { StarIcon } from "@sanity/icons";
 import { defineField, defineType } from "sanity";
 
 import { buttonsField, richTextField } from "../common";
@@ -6,7 +6,7 @@ import { buttonsField, richTextField } from "../common";
 export const hero = defineType({
   name: "hero",
   title: "Hero",
-  icon: Star,
+  icon: StarIcon,
   type: "object",
   fields: [
     defineField({

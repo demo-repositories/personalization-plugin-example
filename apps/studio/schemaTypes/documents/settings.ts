@@ -1,4 +1,4 @@
-import { CogIcon } from "lucide-react";
+import { CogIcon } from "@sanity/icons";
 import { defineField, defineType } from "sanity";
 
 const socialLinks = defineField({
