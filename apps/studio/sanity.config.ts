@@ -53,9 +53,9 @@ export default defineConfig({
     presentationUrl(),
     unsplashImageAsset(),
     fieldLevelExperiments({
-      // field types that you want to be able to emperiment on
+      // field types that you want to be able to experiment on
       fields: ['string'], 
-      // hardcoded experiments and variants
+      // hardcoded experiments and variants (must match cookie values)
       experiments: [
         {
           id: 'title-value',
@@ -66,8 +66,8 @@ export default defineConfig({
               label: 'Control',
             },
             {
-              id: 'variant',
-              label: 'Variant',
+              id: 'variant-a',
+              label: 'Variant A',
             },
           ],
         },
