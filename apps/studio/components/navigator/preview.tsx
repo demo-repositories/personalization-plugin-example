@@ -1,6 +1,6 @@
 import { isImageSource, type SanityImageSource } from "@sanity/asset-utils";
 import { DocumentIcon } from "@sanity/icons";
-import imageUrlBuilder from "@sanity/image-url";
+import {createImageUrlBuilder} from "@sanity/image-url";
 import type React from "react";
 import {
   type ComponentType,
@@ -118,7 +118,7 @@ export const PreviewMedia = (
   const client = useClient({
     apiVersion: "2024-03-12",
   });
-  const imageBuilder = useMemo(() => imageUrlBuilder(client), [client]);
+  const imageBuilder = useMemo(() => createImageUrlBuilder(client), [client]);
 
   // NOTE: This function exists because the previews provides options
   // for the rendering of the media (dimensions)

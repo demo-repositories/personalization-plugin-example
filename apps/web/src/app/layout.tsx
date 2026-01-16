@@ -1,9 +1,9 @@
-import "@workspace/ui/globals.css";
+import "./globals.css";
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { Geist, Geist_Mono } from "next/font/google";
 import { draftMode } from "next/headers";
-import { VisualEditing } from "next-sanity";
+import { VisualEditing } from "next-sanity/visual-editing";
 import { Suspense } from "react";
 
 import { FooterServer, FooterSkeleton } from "@/components/footer";
