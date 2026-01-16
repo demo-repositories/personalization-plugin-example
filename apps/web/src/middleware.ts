@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+
 import { setCookiesValue } from "./lib/experiments";
 import {
   getRouteExperiments,
@@ -7,7 +8,12 @@ import {
   selectVariantPage,
 } from "./lib/route-experiments";
 
-const EXPERIMENT_VARIANTS = ["control", "variant", "variant-a", "variant-b", "variant-c"];
+const EXPERIMENT_VARIANTS = [
+  "control",
+  "variant-a",
+  "variant-b",
+  "variant-c",
+];
 
 function getUserVariant(request: NextRequest, response: NextResponse): string {
   // Check existing cookie first
@@ -46,7 +52,8 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const userVariant = getUserVariant(request, response);
   // Geo is available on Vercel Edge, may be undefined locally
-  const countryCode = (request as NextRequest & { geo?: { country?: string } }).geo?.country;
+  const countryCode = (request as NextRequest & { geo?: { country?: string } })
+    .geo?.country;
 
   // ===========================================
   // Route Experiments (CMS-driven)
@@ -55,19 +62,35 @@ export async function middleware(request: NextRequest) {
     const experiments = await getRouteExperiments();
     const experiment = getExperimentForRoute(experiments, pathname);
 
+    console.log("[Route Experiments] pathname:", pathname);
+    console.log("[Route Experiments] userVariant:", userVariant);
+    console.log("[Route Experiments] experiment found:", experiment?.name);
+
     if (experiment) {
-      const selectedPage = selectVariantPage(experiment, userVariant, countryCode);
+      const selectedPage = selectVariantPage(
+        experiment,
+        userVariant,
+        countryCode
+      );
+
+      console.log("[Route Experiments] selectedPage:", JSON.stringify(selectedPage));
 
       if (selectedPage) {
         const url = request.nextUrl.clone();
 
-        // For homePage, rewrite to /home/[variant]
-        if (selectedPage.pageType === "homePage") {
+        // For homepage route experiments, always rewrite to /home/[variant]
+        // The pageId param tells the page component which document to render
+        if (pathname === "/") {
           url.pathname = `/home/${userVariant}`;
         } else if (selectedPage.pageSlug) {
-          // For regular pages, rewrite to /[slug]/[variant]
+          // For other route experiments, rewrite to /[slug]/[variant]
           url.pathname = `${selectedPage.pageSlug}/${userVariant}`;
         }
+
+        // Pass the selected page ID to the page component
+        url.searchParams.set("pageId", selectedPage.pageId);
+
+        console.log("[Route Experiments] Rewriting to:", url.toString());
 
         if (url.pathname !== pathname) {
           const rewriteResponse = NextResponse.rewrite(url);
@@ -85,7 +108,9 @@ export async function middleware(request: NextRequest) {
   // Blog Post A/B Test Routing (hardcoded)
   // ===========================================
   if (pathname.match(/^\/blog\/[^\/]+$/) && !pathname.endsWith("/")) {
-    const variant = EXPERIMENT_VARIANTS.includes(userVariant) ? userVariant : "control";
+    const variant = EXPERIMENT_VARIANTS.includes(userVariant)
+      ? userVariant
+      : "control";
     const url = request.nextUrl.clone();
     url.pathname = `${pathname}/${variant}`;
     const rewriteResponse = NextResponse.rewrite(url);

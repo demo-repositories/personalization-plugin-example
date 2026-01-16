@@ -16,8 +16,8 @@ const EXPERIMENTS: Experiment = {
         label: "Control",
       },
       {
-        id: "variant",
-        label: "Variant",
+        id: "variant-a",
+        label: "Variant A",
       },
     ],
   },
@@ -49,7 +49,8 @@ export const setCookiesValue = (
 ) => {
   if (!request.cookies.has("ab-test")) {
     // randomly assign a user to a group
-    const userGroup = Math.random() > 0.5 ? "control" : "variant";
+    // Uses "variant-a" to match the route-experiment schema options
+    const userGroup = Math.random() > 0.5 ? "control" : "variant-a";
     // create a user ID
     const userId = v4();
     // Setting cookies on the response using the `ResponseCookies` API

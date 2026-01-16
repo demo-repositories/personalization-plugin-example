@@ -137,8 +137,12 @@ export const queryHomePageData =
   }`);
 
 // Query for fetching any page by ID (for route experiments)
+// Uses coalesce to prefer draft version over published
 export const queryPageById = defineQuery(/* groq */ `
-  *[_id == $id][0]{
+  coalesce(
+    *[_id == "drafts." + $id][0],
+    *[_id == $id][0]
+  ){
     _id,
     _type,
     title,

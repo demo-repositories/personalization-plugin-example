@@ -1,27 +1,44 @@
+import { cookies } from "next/headers";
+
 import { BlogCard, BlogHeader, FeaturedBlogCard } from "@/components/blog-card";
 import { PageBuilder } from "@/components/pagebuilder";
 import { sanityFetch } from "@/lib/sanity/live";
 import { queryBlogIndexPageData } from "@/lib/sanity/query";
 import { getMetaData } from "@/lib/seo";
 
-async function fetchBlogPosts() {
+async function getUserVariant(): Promise<string> {
+  const cookieStore = await cookies();
+  const abTestCookie = cookieStore.get("ab-test")?.value;
+  if (abTestCookie) {
+    try {
+      return JSON.parse(abTestCookie).userGroup || "control";
+    } catch {
+      return "control";
+    }
+  }
+  return "control";
+}
+
+async function fetchBlogPosts(variant: string) {
   return await sanityFetch({
     query: queryBlogIndexPageData,
     params: {
       experiment: "title-value",
-      variant: "control",
+      variant: variant,
     },
   });
 }
 
 export async function generateMetadata() {
-  const { data } = await fetchBlogPosts();
+  const variant = await getUserVariant();
+  const { data } = await fetchBlogPosts(variant);
   if (!data) return getMetaData({});
   return getMetaData(data);
 }
 
 export default async function BlogIndexPage() {
-  const { data } = await fetchBlogPosts();
+  const variant = await getUserVariant();
+  const { data } = await fetchBlogPosts(variant);
   if (!data) return null;
   const { featuredBlog, blogs, title, description, pageBuilder, _id, _type } =
     data ?? {};

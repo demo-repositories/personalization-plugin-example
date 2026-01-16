@@ -92,7 +92,7 @@ export function selectVariantPage(
   experiment: RouteExperiment,
   userVariant: string,
   countryCode?: string
-): { pageSlug: string | null; pageType: string } | null {
+): { pageId: string; pageSlug: string | null; pageType: string } | null {
   // Check geo targeting first (takes precedence)
   if (experiment.geoTargeting && experiment.geoTargeting.length > 0 && countryCode) {
     const geoMatch =
@@ -101,7 +101,7 @@ export function selectVariantPage(
       ) || experiment.geoTargeting.find((g) => g.country === "default");
 
     if (geoMatch) {
-      return { pageSlug: geoMatch.pageSlug, pageType: geoMatch.pageType };
+      return { pageId: geoMatch.pageId, pageSlug: geoMatch.pageSlug, pageType: geoMatch.pageType };
     }
   }
 
@@ -110,7 +110,7 @@ export function selectVariantPage(
     // Find matching variant
     const variant = experiment.variants.find((v) => v.id === userVariant);
     if (variant) {
-      return { pageSlug: variant.pageSlug, pageType: variant.pageType };
+      return { pageId: variant.pageId, pageSlug: variant.pageSlug, pageType: variant.pageType };
     }
 
     // Fall back to control or first variant
@@ -118,7 +118,7 @@ export function selectVariantPage(
       experiment.variants.find((v) => v.id === "control") ||
       experiment.variants[0];
     if (control) {
-      return { pageSlug: control.pageSlug, pageType: control.pageType };
+      return { pageId: control.pageId, pageSlug: control.pageSlug, pageType: control.pageType };
     }
   }
 

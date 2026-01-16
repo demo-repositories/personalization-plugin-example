@@ -9,7 +9,7 @@ import { sanityFetch } from "@/lib/sanity/live";
 import { queryBlogPaths, queryBlogSlugPageData } from "@/lib/sanity/query";
 import { getMetaData } from "@/lib/seo";
 
-const EXPERIMENT_VARIANTS = ["control", "variant"];
+const EXPERIMENT_VARIANTS = ["control", "variant-a"];
 
 async function fetchBlogSlugPageData(blogSlug: string, variant: string) {
   const queryParams = {
