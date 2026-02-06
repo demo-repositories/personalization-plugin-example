@@ -41,6 +41,7 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const [blogSlug, variant = "control"] = slug;
+  if (!blogSlug) return getMetaData({});
   const { data } = await fetchBlogSlugPageData(blogSlug, variant);
   if (!data) return getMetaData({});
   return getMetaData(data);
@@ -60,6 +61,7 @@ export default async function BlogSlugPage({
 }) {
   const { slug } = await params;
   const [blogSlug, variant = "control"] = slug;
+  if (!blogSlug) return notFound();
   const trackingData = await getDeferredTrackingData();
 
   const { data } = await fetchBlogSlugPageData(blogSlug, variant);

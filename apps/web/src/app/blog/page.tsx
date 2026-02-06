@@ -4,6 +4,7 @@ import { BlogCard, BlogHeader, FeaturedBlogCard } from "@/components/blog-card";
 import { PageBuilder } from "@/components/pagebuilder";
 import { sanityFetch } from "@/lib/sanity/live";
 import { queryBlogIndexPageData } from "@/lib/sanity/query";
+import type { QueryBlogIndexPageDataResult } from "@/lib/sanity/sanity.types";
 import { getMetaData } from "@/lib/seo";
 
 async function getUserVariant(): Promise<string> {
@@ -19,7 +20,9 @@ async function getUserVariant(): Promise<string> {
   return "control";
 }
 
-async function fetchBlogPosts(variant: string) {
+async function fetchBlogPosts(
+  variant: string
+): Promise<{ data: QueryBlogIndexPageDataResult }> {
   return await sanityFetch({
     query: queryBlogIndexPageData,
     params: {
@@ -41,7 +44,7 @@ export default async function BlogIndexPage() {
   const { data } = await fetchBlogPosts(variant);
   if (!data) return null;
   const { featuredBlog, blogs, title, description, pageBuilder, _id, _type } =
-    data ?? {};
+    data;
 
   return (
     <main className="">

@@ -54,7 +54,7 @@ export default async function RootLayout({
                 const slug = payload?.document?.slug?.current;
                 const type = payload?.document?._type;
                 for (const tag of [slug, id, type]) {
-                  if (tag) revalidateTag(tag);
+                  if (tag) revalidateTag(tag, { expire: 0 });
                 }
               }}
             />
