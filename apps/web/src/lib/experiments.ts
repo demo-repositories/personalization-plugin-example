@@ -8,8 +8,8 @@ type Experiment = Record<
 >;
 
 const EXPERIMENTS: Experiment = {
-  "title-value": {
-    label: "Title Value",
+  "blog-title": {
+    label: "Blog Title",
     variants: [
       {
         id: "control",

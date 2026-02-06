@@ -323,19 +323,23 @@ export const queryRouteExperiments = defineQuery(/* groq */ `
     _id,
     name,
     targetRoute,
-    variants[]{
-      id,
-      label,
-      weight,
-      "pageId": page->_id,
-      "pageSlug": page->slug.current,
-      "pageType": page->_type
-    },
-    geoTargeting[]{
-      country,
-      "pageId": page->_id,
-      "pageSlug": page->slug.current,
-      "pageType": page->_type
+    page{
+      experimentId,
+      "default": {
+        "pageId": default->_id,
+        "pageSlug": default->slug.current,
+        "pageType": default->_type
+      },
+      "variants": variants[]{
+        _key,
+        experimentId,
+        variantId,
+        "value": {
+          "pageId": value->_id,
+          "pageSlug": value->slug.current,
+          "pageType": value->_type
+        }
+      }
     }
   }
 `);

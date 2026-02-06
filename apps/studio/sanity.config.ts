@@ -1,6 +1,6 @@
 import { assist } from "@sanity/assist";
 import { visionTool } from "@sanity/vision";
-import { defineConfig } from "sanity";
+import { defineConfig, defineField } from "sanity";
 import { presentationTool } from "sanity/presentation";
 import { structureTool } from "sanity/structure";
 import {
@@ -14,8 +14,9 @@ import { createPagesNavigator } from "./components/navigator/page-navigator";
 import { presentationUrl } from "./plugins/presentation-url";
 import { schemaTypes } from "./schemaTypes";
 import { structure } from "./structure";
+import { experimentsFromStatsig } from "./utils/experiments";
 import { createPageTemplate } from "./utils/helper";
-import {fieldLevelExperiments} from '@sanity/personalization-plugin'
+import { fieldLevelExperiments } from "@sanity/personalization-plugin";
 
 const projectId = process.env.SANITY_STUDIO_PROJECT_ID ?? "";
 const dataset = process.env.SANITY_STUDIO_DATASET;
@@ -53,26 +54,19 @@ export default defineConfig({
     presentationUrl(),
     unsplashImageAsset(),
     fieldLevelExperiments({
-      // field types that you want to be able to experiment on
-      fields: ['string'], 
-      // hardcoded experiments and variants (must match cookie values)
-      experiments: [
-        {
-          id: 'title-value',
-          label: 'Title Value',
-          variants: [
-            {
-              id: 'control',
-              label: 'Control',
-            },
-            {
-              id: 'variant-a',
-              label: 'Variant A',
-            },
-          ],
-        },
+      // Field(s) you want to experiment on. Passing a full schema field
+      // definition gives us more control (e.g. reference, hidden, etc.)
+      fields: [
+        "string",
+        defineField({
+          name: "page",
+          type: "reference",
+          to: [{ type: "page" }, { type: "homePage" }],
+        }),
       ],
-     }),
+      // Experiments + variants (must match cookie values)
+      experiments: experimentsFromStatsig,
+    }),
   ],
 
   form: {

@@ -1,5 +1,5 @@
 import { SparklesIcon } from "@sanity/icons";
-import { defineArrayMember, defineField, defineType } from "sanity";
+import { defineField, defineType } from "sanity";
 
 export const routeExperiment = defineType({
   name: "routeExperiment",
@@ -37,109 +37,29 @@ export const routeExperiment = defineType({
       description: "Enable/disable this experiment",
     }),
     defineField({
-      name: "variants",
-      title: "Variants",
-      type: "array",
-      description: "Define the variants for this experiment",
-      validation: (Rule) => Rule.required().min(2).max(5),
-      of: [
-        defineArrayMember({
-          type: "object",
-          name: "variant",
-          fields: [
-            defineField({
-              name: "id",
-              title: "Variant ID",
-              type: "string",
-              description: "Unique identifier for this variant",
-              validation: (Rule) => Rule.required(),
-              options: {
-                list: [
-                  { title: "Control", value: "control" },
-                  { title: "Variant A", value: "variant-a" },
-                  { title: "Variant B", value: "variant-b" },
-                  { title: "Variant C", value: "variant-c" },
-                ],
-              },
-            }),
-            defineField({
-              name: "label",
-              title: "Label",
-              type: "string",
-              description: "Human-readable label for this variant",
-            }),
-            defineField({
-              name: "page",
-              title: "Page",
-              type: "reference",
-              to: [{ type: "page" }, { type: "homePage" }],
-              description: "The page document to show for this variant",
-              validation: (Rule) => Rule.required(),
-            }),
-            defineField({
-              name: "weight",
-              title: "Traffic Weight (%)",
-              type: "number",
-              initialValue: 50,
-              description: "Percentage of traffic to send to this variant",
-              validation: (Rule) => Rule.min(0).max(100),
-            }),
-          ],
-          preview: {
-            select: {
-              variantId: "id",
-              label: "label",
-              pageTitle: "page.title",
-              weight: "weight",
-            },
-            prepare: ({ variantId, label, pageTitle, weight }) => ({
-              title: label || variantId || "Unnamed Variant",
-              subtitle: `${pageTitle || "No page"} • ${weight || 0}% traffic`,
-            }),
-          },
-        }),
-      ],
-    }),
-    defineField({
-      name: "geoTargeting",
-      title: "Geo Targeting",
-      type: "array",
+      name: "page",
+      title: "Page Experiment",
+      type: "experimentPage",
       description:
-        "Optional: Override variants based on geographic location. If set, geo rules take precedence over the default variants above.",
-      of: [
-        defineArrayMember({
-          type: "object",
-          name: "geoRule",
-          fields: [
-            defineField({
-              name: "country",
-              title: "Country Code",
-              type: "string",
-              description:
-                "ISO country code (e.g., US, UK, DE). Use 'default' for fallback.",
-              validation: (Rule) => Rule.required(),
-            }),
-            defineField({
-              name: "page",
-              title: "Page",
-              type: "reference",
-              to: [{ type: "page" }, { type: "homePage" }],
-              description: "The page to show for users from this country",
-              validation: (Rule) => Rule.required(),
-            }),
-          ],
-          preview: {
-            select: {
-              country: "country",
-              pageTitle: "page.title",
-            },
-            prepare: ({ country, pageTitle }) => ({
-              title: country?.toUpperCase() || "Unknown",
-              subtitle: pageTitle || "No page selected",
-            }),
-          },
+        "Select a default page and optional per-variant pages (variants must match your experiment/cookie variant IDs).",
+      validation: (rule) =>
+        rule.custom((experiment: unknown) => {
+          const exp = experiment as
+            | { default?: unknown; variants?: Array<{ _key?: string; value?: unknown }> }
+            | undefined;
+
+          if (!exp?.default) return "Default page is required";
+
+          const invalidVariants = exp.variants?.filter((v) => !v.value) ?? [];
+          if (invalidVariants.length) {
+            return invalidVariants.map((item) => ({
+              message: "Variant page is required",
+              path: ["variants", { _key: item._key }, "value"],
+            }));
+          }
+
+          return true;
         }),
-      ],
     }),
   ],
   preview: {
@@ -147,11 +67,15 @@ export const routeExperiment = defineType({
       name: "name",
       targetRoute: "targetRoute",
       isActive: "isActive",
-      variantsCount: "variants.length",
+      experimentId: "page.experimentId",
     },
-    prepare: ({ name, targetRoute, isActive }) => ({
+    prepare: ({ name, targetRoute, isActive, experimentId }) => ({
       title: name || "Untitled Experiment",
-      subtitle: `${targetRoute || "/"} • ${isActive ? "🟢 Active" : "⚪ Inactive"}`,
+      subtitle: [
+        targetRoute || "/",
+        experimentId ? `Experiment: ${experimentId}` : "No experiment selected",
+        isActive ? "🟢 Active" : "⚪ Inactive",
+      ].join(" • "),
       media: SparklesIcon,
     }),
   },

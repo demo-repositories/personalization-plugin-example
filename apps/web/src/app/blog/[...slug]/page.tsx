@@ -14,7 +14,7 @@ const EXPERIMENT_VARIANTS = ["control", "variant-a"];
 async function fetchBlogSlugPageData(blogSlug: string, variant: string) {
   const queryParams = {
     slug: `/blog/${blogSlug}`,
-    experiment: "title-value",
+    experiment: "blog-title",
     variant: variant,
   };
   return await sanityFetch({

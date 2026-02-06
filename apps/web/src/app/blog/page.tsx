@@ -23,7 +23,7 @@ async function fetchBlogPosts(variant: string) {
   return await sanityFetch({
     query: queryBlogIndexPageData,
     params: {
-      experiment: "title-value",
+      experiment: "blog-title",
       variant: variant,
     },
   });

@@ -45,15 +45,12 @@ function preserveCookies(source: NextResponse, target: NextResponse): void {
   });
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next();
   response = setCookiesValue(request, response);
 
   const pathname = request.nextUrl.pathname;
   const userVariant = getUserVariant(request, response);
-  // Geo is available on Vercel Edge, may be undefined locally
-  const countryCode = (request as NextRequest & { geo?: { country?: string } })
-    .geo?.country;
 
   // ===========================================
   // Route Experiments (CMS-driven)
@@ -67,13 +64,12 @@ export async function middleware(request: NextRequest) {
     console.log("[Route Experiments] experiment found:", experiment?.name);
 
     if (experiment) {
-      const selectedPage = selectVariantPage(
-        experiment,
-        userVariant,
-        countryCode
-      );
+      const selectedPage = selectVariantPage(experiment, userVariant);
 
-      console.log("[Route Experiments] selectedPage:", JSON.stringify(selectedPage));
+      console.log(
+        "[Route Experiments] selectedPage:",
+        JSON.stringify(selectedPage)
+      );
 
       if (selectedPage) {
         const url = request.nextUrl.clone();
@@ -100,7 +96,7 @@ export async function middleware(request: NextRequest) {
       }
     }
   } catch (error) {
-    console.error("Route experiment middleware error:", error);
+    console.error("Route experiment proxy error:", error);
     // Continue with normal routing if experiments fail
   }
 
@@ -133,3 +129,4 @@ export const config = {
     "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
   ],
 };
+

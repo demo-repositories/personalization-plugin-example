@@ -116,7 +116,7 @@ export const PreviewMedia = (
   const { icon, media: mediaProp, imageUrl, title } = props;
 
   const client = useClient({
-    apiVersion: "2024-03-12",
+    apiVersion: "2026-01-27",
   });
   const imageBuilder = useMemo(() => createImageUrlBuilder(client), [client]);
 

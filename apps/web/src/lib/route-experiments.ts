@@ -4,32 +4,34 @@ import { createClient } from "@sanity/client";
 const client = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || "production",
-  apiVersion: "2024-10-28",
+  apiVersion: "2026-01-27",
   useCdn: true,
 });
 
 export type RouteExperimentVariant = {
-  id: string;
-  label?: string;
-  weight?: number;
   pageId: string;
   pageSlug: string | null;
   pageType: string;
 };
 
-export type GeoTargeting = {
-  country: string;
-  pageId: string;
-  pageSlug: string | null;
-  pageType: string;
+export type RouteExperimentPageVariant = {
+  _key?: string;
+  experimentId?: string;
+  variantId: string;
+  value: RouteExperimentVariant;
+};
+
+export type RouteExperimentPageExperiment = {
+  experimentId?: string;
+  default: RouteExperimentVariant;
+  variants?: RouteExperimentPageVariant[];
 };
 
 export type RouteExperiment = {
   _id: string;
   name: string;
   targetRoute: string;
-  variants: RouteExperimentVariant[];
-  geoTargeting?: GeoTargeting[];
+  page: RouteExperimentPageExperiment;
 };
 
 const ROUTE_EXPERIMENTS_QUERY = `
@@ -37,19 +39,23 @@ const ROUTE_EXPERIMENTS_QUERY = `
     _id,
     name,
     targetRoute,
-    variants[]{
-      id,
-      label,
-      weight,
-      "pageId": page->_id,
-      "pageSlug": page->slug.current,
-      "pageType": page->_type
-    },
-    geoTargeting[]{
-      country,
-      "pageId": page->_id,
-      "pageSlug": page->slug.current,
-      "pageType": page->_type
+    page{
+      experimentId,
+      "default": {
+        "pageId": default->_id,
+        "pageSlug": default->slug.current,
+        "pageType": default->_type
+      },
+      "variants": variants[]{
+        _key,
+        experimentId,
+        variantId,
+        "value": {
+          "pageId": value->_id,
+          "pageSlug": value->slug.current,
+          "pageType": value->_type
+        }
+      }
     }
   }
 `;
@@ -90,39 +96,15 @@ export function getExperimentForRoute(
 
 export function selectVariantPage(
   experiment: RouteExperiment,
-  userVariant: string,
-  countryCode?: string
-): { pageId: string; pageSlug: string | null; pageType: string } | null {
-  // Check geo targeting first (takes precedence)
-  if (experiment.geoTargeting && experiment.geoTargeting.length > 0 && countryCode) {
-    const geoMatch =
-      experiment.geoTargeting.find(
-        (g) => g.country.toUpperCase() === countryCode.toUpperCase()
-      ) || experiment.geoTargeting.find((g) => g.country === "default");
+  userVariant: string
+): RouteExperimentVariant | null {
+  const expPage = experiment.page;
+  if (!expPage?.default?.pageId) return null;
 
-    if (geoMatch) {
-      return { pageId: geoMatch.pageId, pageSlug: geoMatch.pageSlug, pageType: geoMatch.pageType };
-    }
-  }
+  const variantMatch = expPage.variants?.find((v) => v.variantId === userVariant);
+  if (variantMatch?.value?.pageId) return variantMatch.value;
 
-  // Fall back to variant-based selection
-  if (experiment.variants && experiment.variants.length > 0) {
-    // Find matching variant
-    const variant = experiment.variants.find((v) => v.id === userVariant);
-    if (variant) {
-      return { pageId: variant.pageId, pageSlug: variant.pageSlug, pageType: variant.pageType };
-    }
-
-    // Fall back to control or first variant
-    const control =
-      experiment.variants.find((v) => v.id === "control") ||
-      experiment.variants[0];
-    if (control) {
-      return { pageId: control.pageId, pageSlug: control.pageSlug, pageType: control.pageType };
-    }
-  }
-
-  return null;
+  return expPage.default;
 }
 
 export function getRewritePath(
