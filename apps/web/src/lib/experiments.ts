@@ -1,6 +1,22 @@
+import MurmurHash3 from "imurmurhash";
 import { v4 } from "uuid";
 import { cookies } from "next/headers";
 import type { NextRequest, NextResponse } from "next/server";
+
+/** Variant IDs shared across experiments - must match Studio experiment definitions */
+export const EXPERIMENT_VARIANTS = [
+  "control",
+  "variant-a",
+  "variant-b",
+  "variant-c",
+] as const;
+
+/** Return logged-in user ID when auth is implemented. Stub returns undefined for now. */
+function getUserIdFromSession(_request: NextRequest): string | undefined {
+  // TODO: Implement when auth is added, e.g.:
+  // return getServerSession()?.user?.id;
+  return undefined;
+}
 
 type Experiment = Record<
   string,
@@ -48,13 +64,32 @@ export const setCookiesValue = (
   response: NextResponse
 ) => {
   if (!request.cookies.has("ab-test")) {
-    // randomly assign a user to a group
-    // Uses "variant-a" to match the route-experiment schema options
-    const userGroup = Math.random() > 0.5 ? "control" : "variant-a";
-    // create a user ID
-    const userId = v4();
-    // Setting cookies on the response using the `ResponseCookies` API
-    response.cookies.set("ab-test", JSON.stringify({ userGroup, userId }));
+    // userId: session (if logged in) > persisted anonymous ID > new UUID
+    const userId =
+      getUserIdFromSession(request) ??
+      request.cookies.get("ab-user-id")?.value ??
+      v4();
+
+    // Deterministic variant from MurmurHash (same userId → same variant)
+    const hash = MurmurHash3(userId).result();
+    const variantIndex = Math.abs(hash) % EXPERIMENT_VARIANTS.length;
+    const userGroup = EXPERIMENT_VARIANTS[variantIndex];
+
+    const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+    response.cookies.set("ab-test", JSON.stringify({ userGroup, userId }), {
+      maxAge: COOKIE_MAX_AGE,
+      path: "/",
+    });
+    // Persist anonymous ID when we created a new one (update to real ID on login)
+    if (
+      !getUserIdFromSession(request) &&
+      !request.cookies.get("ab-user-id")?.value
+    ) {
+      response.cookies.set("ab-user-id", userId, {
+        maxAge: COOKIE_MAX_AGE,
+        path: "/",
+      });
+    }
   }
 
   return response;

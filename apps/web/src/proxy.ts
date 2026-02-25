@@ -1,19 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { setCookiesValue } from "./lib/experiments";
+import {
+  EXPERIMENT_VARIANTS,
+  setCookiesValue,
+} from "./lib/experiments";
 import {
   getRouteExperiments,
   getExperimentForRoute,
   selectVariantPage,
 } from "./lib/route-experiments";
-
-const EXPERIMENT_VARIANTS = [
-  "control",
-  "variant-a",
-  "variant-b",
-  "variant-c",
-];
 
 function getUserVariant(request: NextRequest, response: NextResponse): string {
   // Check existing cookie first
@@ -104,7 +100,9 @@ export async function proxy(request: NextRequest) {
   // Blog Post A/B Test Routing (hardcoded)
   // ===========================================
   if (pathname.match(/^\/blog\/[^\/]+$/) && !pathname.endsWith("/")) {
-    const variant = EXPERIMENT_VARIANTS.includes(userVariant)
+    const variant = (
+      EXPERIMENT_VARIANTS as readonly string[]
+    ).includes(userVariant)
       ? userVariant
       : "control";
     const url = request.nextUrl.clone();

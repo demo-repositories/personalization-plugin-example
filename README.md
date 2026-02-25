@@ -35,7 +35,9 @@ This repo uses `@sanity/personalization-plugin` for **field-level** experiments 
 
 - **Where experiments + variants are defined**: [`apps/studio/utils/experiments.ts`](apps/studio/utils/experiments.ts) (IDs like `blog-title`, variants like `control`, `variant-a`).
 - **Studio plugin wiring**: [`apps/studio/sanity.config.ts`](apps/studio/sanity.config.ts) (`fieldLevelExperiments({ fields, experiments })`).
-- **Variant source in Web** 🍪: `ab-test` cookie `userGroup` is used for routing and passed to queries (see [`apps/web/src/lib/experiments.ts`](apps/web/src/lib/experiments.ts) and [`apps/web/src/proxy.ts`](apps/web/src/proxy.ts))
+- **Variant source in Web** 🍪: MurmurHash-based deterministic assignment using a stable `userId` (see [`apps/web/src/lib/experiments.ts`](apps/web/src/lib/experiments.ts) and [`apps/web/src/proxy.ts`](apps/web/src/proxy.ts)). The `ab-test` cookie stores `{ userGroup, userId }` and is used for routing and queries.
+  - **userId resolution**: Logged-in session ID → persisted `ab-user-id` cookie (anonymous) → new UUID. Deterministic variant from `MurmurHash3(userId).result() % variants.length` for better distribution.
+  - **On login**: Implement `getUserIdFromSession()` in experiments.ts and update the `ab-user-id` cookie to the real user ID so assignment stays consistent across sessions.
 
 #### Field-level experiments 🧩 (example: Blog title)
 
