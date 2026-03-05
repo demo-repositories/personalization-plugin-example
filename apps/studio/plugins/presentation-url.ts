@@ -37,8 +37,14 @@ export const presentationUrl = definePlugin(() => {
                   return;
                 }
 
+                const origin =
+                  process.env.SANITY_STUDIO_PRESENTATION_URL ??
+                  "http://localhost:3000";
+                const path = slug.startsWith("/") ? slug : `/${slug}`;
+                const previewUrl = `${origin.replace(/\/$/, "")}${path}`;
+
                 router.navigateUrl({
-                  path: `/presentation?preview=${encodeURIComponent(slug)}`,
+                  path: `/presentation?preview=${encodeURIComponent(previewUrl)}`,
                 });
               }, [getFormValue, toast, router]);
 
